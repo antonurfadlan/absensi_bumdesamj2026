@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ABSENSI BUMDES AMJ</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #f0f2f5; display: flex; justify-content: center; min-height: 100vh; width: 100vw; overflow-x: hidden; }
+
+        /* JUDUL POJOK: Sudah Fix Tidak Menghalangi Klik */
+        .header-label {
+            position: fixed; top: 15px; left: 15px; z-index: 999; 
+            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
+            padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white; font-size: 10px; font-weight: 800; display: flex; align-items: center; gap: 6px;
+            pointer-events: none; user-select: none;
+        }
+
+        .bg-atas { position: fixed; top: 0; left: 0; width: 100%; height: 400px; background: linear-gradient(135deg, #b59b00 0%, #006400 100%); clip-path: ellipse(160% 70% at 50% 0%); z-index: 1; }
+        .container { position: relative; z-index: 2; width: 90%; max-width: 400px; margin-top: 135px; margin-bottom: 40px; }
+
+        .card { background: rgba(255, 255, 255, 0.98); border-radius: 30px; padding: 85px 25px 30px 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; width: 100%; min-height: 550px; display: flex; flex-direction: column; position: relative; }
+
+        .foto-lingkaran { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 120px; height: 120px; border: 5px solid #fff; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); outline: 2px solid #008000; cursor: pointer; z-index: 5; }
+        .foto-lingkaran img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .t-hijau { color: #008000; font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+        .t-hitam { color: #1a1a1a; font-weight: 800; font-size: 18px; margin-bottom: 25px; }
+
+        input, select, textarea { width: 100%; padding: 15px; border: 1px solid #eee; border-radius: 12px; margin-bottom: 12px; font-size: 14px; outline: none; background: #f8f9fa; }
+        
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; color: #fff; cursor: pointer; transition: 0.3s; margin-bottom: 10px; position: relative; z-index: 10; }
+        .btn-masuk { background: #008000; box-shadow: 0 6px 15px rgba(0,128,0,0.2); }
+        .btn-pulang { background: #0056b3; box-shadow: 0 6px 15px rgba(0,86,179,0.2); }
+        .btn-izin { background: #d32f2f; }
+        .btn-share { background: #25D366; font-size: 13px; margin-top: 20px; }
+
+        .grid-absen { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 5px; }
+        .footer { margin-top: auto; padding-top: 25px; font-size: 10px; color: #bbb; font-weight: 800; letter-spacing: 1px; }
+        .hidden { display: none !important; }
+
+        #layar-kamera { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        video { width: 85%; border-radius: 20px; border: 3px solid #fff; }
+        
+        .link-teks { color: #008000; font-weight: 800; cursor: pointer; padding: 5px; display: inline-block; position: relative; z-index: 30; }
+    </style>
+</head>
+<body>
+
+<div class="header-label"><span>📆 ABSENSI BUMDES AMJ</span></div>
+<div class="bg-atas"></div>
+
+<div class="container">
+    <div class="card" id="hal-login">
+        <div class="foto-lingkaran" onclick="document.getElementById('f-logo').click()">
+            <img id="v-logo-l" style="display:none"><span id="l-logo-l">PASANG LOGO</span>
+        </div>
+        <div class="t-hijau">BUMDES AMANAH MANDIRI JAYA</div>
+        <div class="t-hitam">DESA PAJAMBON</div>
+        <input type="text" id="in-user" placeholder="Nama / No.Handphone">
+        <input type="password" id="in-pass" placeholder="Kata Sandi">
+        <button class="btn btn-masuk" onclick="prosesLogin()">MASUK</button>
+        <p style="font-size: 13px; margin-top: 15px;">Belum daftar? <span class="link-teks" onclick="pindah('hal-reg')">DAFTAR</span></p>
+        <div class="footer">@bumdesamj2026</div>
+    </div>
+
+    <div class="card hidden" id="hal-reg">
+        <div class="foto-lingkaran">
+            <img id="v-logo-r" style="display:none"><span id="l-logo-r">LOGO AMJ</span>
+        </div>
+        <div class="t-hijau">PENDAFTARAN</div>
+        <div class="t-hitam">ANGGOTA BARU</div>
+        <input type="text" id="r-nama" placeholder="Nama Lengkap">
+        <input type="tel" id="r-hp" placeholder="No.Handphone">
+        <select id="r-jab"><option>Ketua</option><option>Sekertaris</option><option>Bendahara</option><option>Unit </option><option>Anggota</option></select>
+        <input type="password" id="r-p1" placeholder="Sandi">
+        <input type="password" id="r-p2" placeholder="Ulangi Sandi">
+        <button class="btn btn-masuk" onclick="prosesDaftar()">SIMPAN DATA</button>
+        <p class="link-teks" onclick="pindah('hal-login')">KEMBALI</p>
+        <div class="footer">@bumdesamj2026</div>
+    </div>
+
+    <div class="card hidden" id="hal-dash">
+        <div class="foto-lingkaran" onclick="document.getElementById('f-prof').click()">
+            <img id="v-prof" style="display:none"><span id="l-prof">FOTO</span>
+        </div>
+        <div class="t-hijau" id="user-nama">HALLO!</div>
+        <div class="t-hitam" id="user-jab">JABATAN</div>
+        <div class="grid-absen">
+            <button class="btn btn-masuk" onclick="bukaKamera('MASUK')">MASUK</button>
+            <button class="btn btn-pulang" onclick="bukaKamera('PULANG')">PULANG</button>
+        </div>
+        <button class="btn btn-izin" onclick="tampilIzin()">IZIN / SAKIT</button>
+        <div id="box-izin" class="hidden" style="margin-top:10px">
+            <textarea id="ket-manual" placeholder="Alasan..."></textarea>
+            <button class="btn btn-masuk" onclick="simpanIzin()">KIRIM</button>
+        </div>
+        <div id="list-log" style="margin-top:20px; text-align:left;"></div>
+        <button class="btn btn-share" id="btn-share" style="display:none" onclick="shareTerpilih()">BAGIKAN</button></button>
+        <p onclick="location.reload()" style="color:red; font-size:11px; font-weight:800; margin-top:35px; cursor:pointer">LOGOUT</p>
+        <div class="footer">@bumdesamj2026</div>
+    </div>
+</div>
+
+<div id="layar-kamera">
+    <video id="video" autoplay playsinline></video>
+    <div style="width:90%; display:flex; gap:10px; margin-top:20px">
+        <button class="btn" style="background:#555; flex:1" onclick="switchCam()">🔄</button>
+        <button class="btn" style="background:green; flex:2" onclick="ambilFoto()">AMBIL FOTO</button>
+    </div>
+    <button class="btn" style="background:#d32f2f; width:90%; margin-top:10px" onclick="tutupKamera()">BATAL</button>
+</div>
+
+<input type="file" id="f-logo" hidden accept="image/*">
+<input type="file" id="f-prof" hidden accept="image/*">
+
+<script>
+    let db = JSON.parse(localStorage.getItem('amj_data_v3')) || null;
+    let stream = null;
+    let currentFacingMode = "user";
+    let riwayatArray = [];
+
+    function saveImg(input, targetIds, storageKey) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let base64 = e.target.result;
+            localStorage.setItem(storageKey, base64);
+            targetIds.forEach(id => {
+                let img = document.getElementById(id);
+                img.src = base64; img.style.display = 'block';
+                let label = id.replace('v-', 'l-');
+                if(document.getElementById(label)) document.getElementById(label).style.display = 'none';
+            });
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    document.getElementById('f-logo').onchange = e => saveImg(e.target, ['v-logo-l', 'v-logo-r'], 'amj_logo');
+    document.getElementById('f-prof').onchange = e => saveImg(e.target, ['v-prof'], 'amj_foto_user');
+
+    window.onload = () => {
+        let logo = localStorage.getItem('amj_logo');
+        if(logo) {
+            document.getElementById('v-logo-l').src = logo; document.getElementById('v-logo-l').style.display='block';
+            document.getElementById('v-logo-r').src = logo; document.getElementById('v-logo-r').style.display='block';
+            document.getElementById('l-logo-l').style.display='none'; document.getElementById('l-logo-r').style.display='none';
+        }
+        let prof = localStorage.getItem('amj_foto_user');
+        if(prof) {
+            document.getElementById('v-prof').src = prof; document.getElementById('v-prof').style.display='block';
+            document.getElementById('l-prof').style.display='none';
+        }
+    };
+
+    function pindah(id) {
+        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function prosesDaftar() {
+        let n = document.getElementById('r-nama').value;
+        let p1 = document.getElementById('r-p1').value;
+        if(!n || p1 !== document.getElementById('r-p2').value) return alert("Cek kembali sandi!");
+        db = { n: n.toUpperCase(), h: document.getElementById('r-hp').value, j: document.getElementById('r-jab').value, p: p1 };
+        localStorage.setItem('amj_data_v3', JSON.stringify(db));
+        alert("Pendaftaran Berhasil!"); pindah('hal-login');
+    }
+
+    function prosesLogin() {
+        let u = document.getElementById('in-user').value.toUpperCase();
+        let p = document.getElementById('in-pass').value;
+        if(db && (u === db.n || u === db.h) && p === db.p) {
+            document.getElementById('user-nama').innerText = "HALO, " + db.n;
+            document.getElementById('user-jab').innerText = db.j;
+            pindah('hal-dash');
+        } else alert("Nama atau Sandi Salah!");
+    }
+
+    function tampilIzin() { document.getElementById('box-izin').classList.toggle('hidden'); }
+
+    function addLog(html, teks) {
+        let id = 'log-' + Date.now();
+        riwayatArray.push({ id, teks });
+        let div = document.createElement('div');
+        div.style.cssText = "display:flex; gap:10px; padding:12px 0; border-bottom:1px solid #f0f0f0; font-size:11px;";
+        div.innerHTML = `<input type="checkbox" class="log-check" value="${id}" checked style="width:18px"><div style="flex:1">${html}</div>`;
+        document.getElementById('list-log').prepend(div);
+        document.getElementById('btn-share').style.display = 'block';
+    }
+
+    function simpanIzin() {
+        let t = document.getElementById('ket-manual').value;
+        if(!t) return;
+        addLog(`<b>IZIN</b> | ${new Date().toLocaleTimeString()}<br>Ket: ${t}`, `IZIN: ${t}`);
+        document.getElementById('ket-manual').value = ""; tampilIzin();
+    }
+
+    async function startCam(mode) {
+        try {
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
+            document.getElementById('video').srcObject = stream;
+        } catch(e) { alert("Izinkan kamera."); }
+    }
+
+    function bukaKamera(m) {
+        modeAbsen = m; document.getElementById('layar-kamera').style.display = 'flex';
+        startCam(currentFacingMode);
+    }
+
+    function switchCam() {
+        currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+        startCam(currentFacingMode);
+    }
+
+    function tutupKamera() {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        document.getElementById('layar-kamera').style.display = 'none';
+    }
+
+    async function ambilFoto() {
+        let v = document.getElementById('video');
+        let can = document.createElement('canvas');
+        can.width = v.videoWidth; can.height = v.videoHeight;
+        can.getContext('2d').drawImage(v, 0, 0);
+        let img = can.toDataURL('image/jpeg', 0.5);
+        let jam = new Date().toLocaleTimeString();
+        tutupKamera();
+        
+        navigator.geolocation.getCurrentPosition(async pos => {
+            let lat = pos.coords.latitude, lon = pos.coords.longitude;
+            try {
+                // INI KODE LOKASI YANG SAYA MASUKKAN KEMBALI
+                let res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                let data = await res.json();
+                let locName = data.display_name;
+                addLog(`<b>${modeAbsen}</b> | ${jam}<br><img src="${img}" style="width:60px; border-radius:5px; margin:5px 0"><br>📍 ${locName}<br><small>${lat}, ${lon}</small>`, `${modeAbsen}: ${jam}\nLokasi: ${locName}\nKordinat: ${lat},${lon}`);
+            } catch(e) {
+                addLog(`<b>${modeAbsen}</b> | ${jam}<br><img src="${img}" style="width:60px; border-radius:5px;"><br>📍 ${lat}, ${lon}`, `${modeAbsen}: ${jam} (${lat},${lon})`);
+            }
+        });
+    }
+
+    function shareTerpilih() {
+        let terpilih = Array.from(document.querySelectorAll('.log-check:checked')).map(c => c.value);
+        if(terpilih.length === 0) return alert("Pilih data!");
+        let h = `*ABSENSI BUMDES AMJ*\nNama: ${db.n}\n---\n`;
+        let b = riwayatArray.filter(r => terpilih.includes(r.id)).map(r => r.teks).join('\n\n');
+        window.open(`https://wa.me/?text=${encodeURIComponent(h + b)}`);
+    }
+</script>
+</body>
+</html>
