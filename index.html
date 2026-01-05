@@ -5,252 +5,269 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ABSENSI BUMDES AMJ</title>
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #f0f2f5; display: flex; justify-content: center; min-height: 100vh; width: 100vw; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Orbitron:wght@400;700;900&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: #f0f2f5; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
 
-        /* JUDUL POJOK: Sudah Fix Tidak Menghalangi Klik */
-        .header-label {
-            position: fixed; top: 15px; left: 15px; z-index: 999; 
-            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
-            padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white; font-size: 10px; font-weight: 800; display: flex; align-items: center; gap: 6px;
-            pointer-events: none; user-select: none;
+        .masjid-header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100px;
+            background: #000; z-index: 2000;
+            display: flex; flex-direction: column; align-items: center;
+            border-bottom: 4px solid #b59b00;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
         }
-
-        .bg-atas { position: fixed; top: 0; left: 0; width: 100%; height: 400px; background: linear-gradient(135deg, #b59b00 0%, #006400 100%); clip-path: ellipse(160% 70% at 50% 0%); z-index: 1; }
-        .container { position: relative; z-index: 2; width: 90%; max-width: 400px; margin-top: 135px; margin-bottom: 40px; }
-
-        .card { background: rgba(255, 255, 255, 0.98); border-radius: 30px; padding: 85px 25px 30px 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; width: 100%; min-height: 550px; display: flex; flex-direction: column; position: relative; }
-
-        .foto-lingkaran { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 120px; height: 120px; border: 5px solid #fff; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); outline: 2px solid #008000; cursor: pointer; z-index: 5; }
-        .foto-lingkaran img { width: 100%; height: 100%; object-fit: cover; }
         
-        .t-hijau { color: #008000; font-weight: 700; font-size: 13px; margin-bottom: 4px; }
-        .t-hitam { color: #1a1a1a; font-weight: 800; font-size: 18px; margin-bottom: 25px; }
+        .running-text { width: 100%; background: #111; color: #ffcc00; font-size: 13px; font-weight: 800; padding: 8px 0; border-bottom: 1px solid #222; overflow: hidden; }
+        .jam-section { text-align: center; padding-top: 6px; }
+        .jam-digital { font-family: 'Orbitron', sans-serif; font-size: 26px; font-weight: 900; color: #00ff00; letter-spacing: 2px; line-height: 1; text-shadow: 0 0 10px rgba(0, 255, 0, 0.6); }
+        .tanggal-digital { font-size: 9px; font-weight: 700; color: #ffffff; letter-spacing: 1px; margin-top: 5px; text-transform: uppercase; }
 
-        input, select, textarea { width: 100%; padding: 15px; border: 1px solid #eee; border-radius: 12px; margin-bottom: 12px; font-size: 14px; outline: none; background: #f8f9fa; }
+        .bg-atas { position: fixed; top: 0; left: 0; width: 100%; height: 350px; background: linear-gradient(135deg, #004d00 0%, #008000 100%); z-index: 1; }
+        .container { position: relative; z-index: 2; width: 90%; max-width: 400px; margin-top: 160px; margin-bottom: 40px; }
+
+        .card { background: rgba(255, 255, 255, 0.98); border-radius: 25px; padding: 75px 20px 30px 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); text-align: center; position: relative; }
+
+        .foto-lingkaran { 
+            position: absolute; top: -55px; left: 50%; transform: translateX(-50%); 
+            width: 110px; height: 110px; border: 5px solid #fff; border-radius: 50%; 
+            background: #eee; display: flex; align-items: center; justify-content: center; 
+            overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.2); 
+            outline: 2px solid #008000; cursor: pointer; z-index: 5; 
+        }
+        .foto-lingkaran img { width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; z-index: 10; }
+        .foto-lingkaran span { font-size: 10px; font-weight: 800; color: #777; z-index: 1; }
         
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; color: #fff; cursor: pointer; transition: 0.3s; margin-bottom: 10px; position: relative; z-index: 10; }
-        .btn-masuk { background: #008000; box-shadow: 0 6px 15px rgba(0,128,0,0.2); }
-        .btn-pulang { background: #0056b3; box-shadow: 0 6px 15px rgba(0,86,179,0.2); }
-        .btn-izin { background: #d32f2f; }
-        .btn-share { background: #25D366; font-size: 13px; margin-top: 20px; }
+        .judul-besar { color: #008000; font-weight: 800; font-size: 18px; margin-bottom: 5px; }
+        .t-hitam { color: #1a1a1a; font-weight: 800; font-size: 17px; margin-bottom: 25px; }
 
-        .grid-absen { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 5px; }
-        .footer { margin-top: auto; padding-top: 25px; font-size: 10px; color: #bbb; font-weight: 800; letter-spacing: 1px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; font-size: 14px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; color: #fff; margin-bottom: 8px; }
+        .btn-masuk { background: #008000; }
+        .btn-pulang { background: #0056b3; }
+        .btn-wa { background: #25D366; font-size: 12px; margin-top: 10px; }
+        
+        .rekap-box { margin-top: 15px; padding: 15px; background: #f1f3f5; border-radius: 15px; border: 1px solid #ddd; text-align: left; }
         .hidden { display: none !important; }
-
-        #layar-kamera { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        video { width: 85%; border-radius: 20px; border: 3px solid #fff; }
         
-        .link-teks { color: #008000; font-weight: 800; cursor: pointer; padding: 5px; display: inline-block; position: relative; z-index: 30; }
+        #layar-kamera, #crop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10001; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #img-crop { max-width: 90%; max-height: 70%; }
+        .log-item { display: flex; gap: 8px; border-bottom: 1px solid #eee; padding: 8px 0; align-items: flex-start; }
     </style>
 </head>
 <body>
 
-<div class="header-label"><span>📆 ABSENSI BUMDES AMJ</span></div>
-<div class="bg-atas"></div>
+<div class="masjid-header">
+    <div class="running-text">
+        <marquee scrollamount="6">+++ ABSENSI BUMDES AMANAH MANDIRI JAYA 2026 DESA PAJAMBON +++</marquee>
+    </div>
+    <div class="jam-section">
+        <div class="jam-digital" id="jam-running">00:00:00</div>
+        <div class="tanggal-digital" id="tgl-hari-ini">...</div>
+    </div>
+</div>
 
+<div class="bg-atas"></div>
 <div class="container">
     <div class="card" id="hal-login">
-        <div class="foto-lingkaran" onclick="document.getElementById('f-logo').click()">
-            <img id="v-logo-l" style="display:none"><span id="l-logo-l">PASANG LOGO</span>
+        <div class="foto-lingkaran" onclick="pilihFile('logo')">
+            <img id="v-logo-l">
+            <span id="s-logo-l">UPLOAD LOGO</span>
         </div>
-        <div class="t-hijau">BUMDES AMANAH MANDIRI JAYA</div>
+        <div class="judul-besar">BUMDES AMANAH MANDIRI JAYA</div>
         <div class="t-hitam">DESA PAJAMBON</div>
         <input type="text" id="in-user" placeholder="Nama / No.Handphone">
-        <input type="password" id="in-pass" placeholder="Kata Sandi">
+        <input type="password" id="in-pass" placeholder="Sandi">
         <button class="btn btn-masuk" onclick="prosesLogin()">MASUK</button>
-        <p style="font-size: 13px; margin-top: 15px;">Belum daftar? <span class="link-teks" onclick="pindah('hal-reg')">DAFTAR</span></p>
-        <div class="footer">@bumdesamj2026</div>
+        <p style="font-size:13px">Belum daftar? <span style="color:#008000; font-weight:800; cursor:pointer" onclick="pindah('hal-reg')">DAFTAR</span></p>
     </div>
 
     <div class="card hidden" id="hal-reg">
-        <div class="foto-lingkaran">
-            <img id="v-logo-r" style="display:none"><span id="l-logo-r">LOGO AMJ</span>
-        </div>
-        <div class="t-hijau">PENDAFTARAN</div>
-        <div class="t-hitam">ANGGOTA BARU</div>
+        <div class="foto-lingkaran"><img id="v-logo-r"><span id="s-logo-r">LOGO</span></div>
+        <div class="judul-besar">PENDAFTARAN</div>
         <input type="text" id="r-nama" placeholder="Nama Lengkap">
         <input type="tel" id="r-hp" placeholder="No.Handphone">
-        <select id="r-jab"><option>Ketua</option><option>Sekertaris</option><option>Bendahara</option><option>Unit </option><option>Anggota</option></select>
+        <select id="r-jab"><option>Ketua</option><option>Sekertaris</option><option>Bendahara</option><option>Unit</option><option>Anggota</option></select>
         <input type="password" id="r-p1" placeholder="Sandi">
         <input type="password" id="r-p2" placeholder="Ulangi Sandi">
-        <button class="btn btn-masuk" onclick="prosesDaftar()">SIMPAN DATA</button>
-        <p class="link-teks" onclick="pindah('hal-login')">KEMBALI</p>
-        <div class="footer">@bumdesamj2026</div>
+        <button class="btn btn-masuk" onclick="prosesDaftar()">SIMPAN</button>
+        <p onclick="pindah('hal-login')" style="cursor:pointer; color:#008000; font-weight:800">KEMBALI</p>
     </div>
 
     <div class="card hidden" id="hal-dash">
-        <div class="foto-lingkaran" onclick="document.getElementById('f-prof').click()">
-            <img id="v-prof" style="display:none"><span id="l-prof">FOTO</span>
-        </div>
-        <div class="t-hijau" id="user-nama">HALLO!</div>
-        <div class="t-hitam" id="user-jab">JABATAN</div>
-        <div class="grid-absen">
+        <div class="foto-lingkaran" onclick="pilihFile('profil')"><img id="v-prof"><span id="s-prof">FOTO</span></div>
+        <div class="judul-besar" id="user-nama">...</div>
+        <div class="t-hitam" id="user-jab">...</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
             <button class="btn btn-masuk" onclick="bukaKamera('MASUK')">MASUK</button>
             <button class="btn btn-pulang" onclick="bukaKamera('PULANG')">PULANG</button>
         </div>
-        <button class="btn btn-izin" onclick="tampilIzin()">IZIN / SAKIT</button>
-        <div id="box-izin" class="hidden" style="margin-top:10px">
-            <textarea id="ket-manual" placeholder="Alasan..."></textarea>
-            <button class="btn btn-masuk" onclick="simpanIzin()">KIRIM</button>
+        <button class="btn" style="background:red; font-size:12px; padding:10px" onclick="prosesIzin()">IZIN / SAKIT</button>
+        
+        <div class="rekap-box">
+            <div style="font-size:11px; font-weight:800; margin-bottom:8px">Filter Rekap</div>
+            <div style="display:flex; gap:5px">
+                <input type="date" id="tgl-mulai" style="font-size:10px">
+                <input type="date" id="tgl-akhir" style="font-size:10px">
+            </div>
+            <button class="btn" style="background:#444; padding:8px; font-size:11px" onclick="filterRekap()">TAMPILKAN</button>
+            <div id="list-log"></div>
+            <button class="btn btn-wa" id="btn-bagikan" style="display:none" onclick="bagikanKeWA()">BAGIKAN</button>
         </div>
-        <div id="list-log" style="margin-top:20px; text-align:left;"></div>
-        <button class="btn btn-share" id="btn-share" style="display:none" onclick="shareTerpilih()">BAGIKAN</button></button>
-        <p onclick="location.reload()" style="color:red; font-size:11px; font-weight:800; margin-top:35px; cursor:pointer">LOGOUT</p>
-        <div class="footer">@bumdesamj2026</div>
+        <p onclick="location.reload()" style="color:red; font-size:11px; font-weight:800; margin-top:15px; cursor:pointer">KELUAR</p>
+    </div>
+</div>
+
+<div id="crop-overlay">
+    <div style="flex:1; width:100%; display:flex; align-items:center; justify-content:center; background:#111"><img id="img-crop"></div>
+    <div style="display:flex; gap:10px; padding:20px; width:100%; background:#000">
+        <button class="btn" style="background:#555; flex:1" onclick="tutupCrop()">BATAL</button>
+        <button class="btn btn-masuk" style="flex:1" onclick="selesaiCrop()">SIMPAN</button>
     </div>
 </div>
 
 <div id="layar-kamera">
-    <video id="video" autoplay playsinline></video>
-    <div style="width:90%; display:flex; gap:10px; margin-top:20px">
-        <button class="btn" style="background:#555; flex:1" onclick="switchCam()">🔄</button>
-        <button class="btn" style="background:green; flex:2" onclick="ambilFoto()">AMBIL FOTO</button>
-    </div>
-    <button class="btn" style="background:#d32f2f; width:90%; margin-top:10px" onclick="tutupKamera()">BATAL</button>
+    <video id="video" autoplay playsinline style="width:85%; border-radius:15px"></video>
+    <button class="btn btn-masuk" style="width:80%; margin-top:15px" onclick="ambilFoto()">AMBIL FOTO</button>
+    <button class="btn" style="background:red; width:80%" onclick="tutupKamera()">BATAL</button>
 </div>
 
-<input type="file" id="f-logo" hidden accept="image/*">
-<input type="file" id="f-prof" hidden accept="image/*">
+<input type="file" id="f-file" hidden accept="image/*">
 
 <script>
-    let db = JSON.parse(localStorage.getItem('amj_data_v3')) || null;
-    let stream = null;
-    let currentFacingMode = "user";
-    let riwayatArray = [];
+    let db = JSON.parse(localStorage.getItem('amj_data_v3'));
+    let riwayat = JSON.parse(localStorage.getItem('amj_riwayat')) || [];
+    let cropper, currentTarget, stream, modeAbsen;
 
-    function saveImg(input, targetIds, storageKey) {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            let base64 = e.target.result;
-            localStorage.setItem(storageKey, base64);
-            targetIds.forEach(id => {
-                let img = document.getElementById(id);
-                img.src = base64; img.style.display = 'block';
-                let label = id.replace('v-', 'l-');
-                if(document.getElementById(label)) document.getElementById(label).style.display = 'none';
-            });
-        };
-        reader.readAsDataURL(input.files[0]);
+    function updateClock() {
+        const d = new Date();
+        document.getElementById('jam-running').innerText = d.toLocaleTimeString('id-ID');
+        document.getElementById('tgl-hari-ini').innerText = d.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
     }
-
-    document.getElementById('f-logo').onchange = e => saveImg(e.target, ['v-logo-l', 'v-logo-r'], 'amj_logo');
-    document.getElementById('f-prof').onchange = e => saveImg(e.target, ['v-prof'], 'amj_foto_user');
-
-    window.onload = () => {
-        let logo = localStorage.getItem('amj_logo');
-        if(logo) {
-            document.getElementById('v-logo-l').src = logo; document.getElementById('v-logo-l').style.display='block';
-            document.getElementById('v-logo-r').src = logo; document.getElementById('v-logo-r').style.display='block';
-            document.getElementById('l-logo-l').style.display='none'; document.getElementById('l-logo-r').style.display='none';
-        }
-        let prof = localStorage.getItem('amj_foto_user');
-        if(prof) {
-            document.getElementById('v-prof').src = prof; document.getElementById('v-prof').style.display='block';
-            document.getElementById('l-prof').style.display='none';
-        }
-    };
+    setInterval(updateClock, 1000); updateClock();
 
     function pindah(id) {
         document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 
+    function pilihFile(t) { currentTarget = t; document.getElementById('f-file').click(); }
+    document.getElementById('f-file').onchange = function(e) {
+        let reader = new FileReader();
+        reader.onload = function(ev) {
+            document.getElementById('crop-overlay').style.display='flex';
+            document.getElementById('img-crop').src = ev.target.result;
+            if(cropper) cropper.destroy();
+            cropper = new Cropper(document.getElementById('img-crop'), {aspectRatio:1});
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    };
+
+    function tutupCrop() { document.getElementById('crop-overlay').style.display='none'; }
+    function selesaiCrop() {
+        let b64 = cropper.getCroppedCanvas().toDataURL('image/jpeg');
+        if(currentTarget === 'logo') {
+            localStorage.setItem('amj_logo', b64);
+            updateImg('logo', b64);
+        } else {
+            localStorage.setItem('amj_foto_user', b64);
+            updateImg('prof', b64);
+        }
+        tutupCrop();
+    }
+
+    function updateImg(type, src) {
+        if(type === 'logo') {
+            ['v-logo-l', 'v-logo-r'].forEach(id => { let el=document.getElementById(id); el.src=src; el.style.display='block'; });
+            ['s-logo-l', 's-logo-r'].forEach(id => { let el=document.getElementById(id); if(el) el.style.display='none'; });
+        } else {
+            let img=document.getElementById('v-prof'); img.src=src; img.style.display='block';
+            document.getElementById('s-prof').style.display='none';
+        }
+    }
+
     function prosesDaftar() {
-        let n = document.getElementById('r-nama').value;
-        let p1 = document.getElementById('r-p1').value;
-        if(!n || p1 !== document.getElementById('r-p2').value) return alert("Cek kembali sandi!");
-        db = { n: n.toUpperCase(), h: document.getElementById('r-hp').value, j: document.getElementById('r-jab').value, p: p1 };
+        let n = document.getElementById('r-nama').value, hp = document.getElementById('r-hp').value, p = document.getElementById('r-p1').value, j = document.getElementById('r-jab').value;
+        if(!n || p !== document.getElementById('r-p2').value) return alert("Cek data!");
+        db = { n: n.toUpperCase(), h: hp, j: j, p: p };
         localStorage.setItem('amj_data_v3', JSON.stringify(db));
-        alert("Pendaftaran Berhasil!"); pindah('hal-login');
+        if(j === "Ketua") localStorage.setItem('amj_admin_wa', hp);
+        alert("Berhasil!"); pindah('hal-login');
     }
 
     function prosesLogin() {
-        let u = document.getElementById('in-user').value.toUpperCase();
-        let p = document.getElementById('in-pass').value;
+        let u = document.getElementById('in-user').value.toUpperCase(), p = document.getElementById('in-pass').value;
         if(db && (u === db.n || u === db.h) && p === db.p) {
             document.getElementById('user-nama').innerText = "HALO, " + db.n;
             document.getElementById('user-jab').innerText = db.j;
-            pindah('hal-dash');
-        } else alert("Nama atau Sandi Salah!");
+            filterRekap(); pindah('hal-dash');
+        } else alert("Gagal!");
     }
 
-    function tampilIzin() { document.getElementById('box-izin').classList.toggle('hidden'); }
-
-    function addLog(html, teks) {
-        let id = 'log-' + Date.now();
-        riwayatArray.push({ id, teks });
-        let div = document.createElement('div');
-        div.style.cssText = "display:flex; gap:10px; padding:12px 0; border-bottom:1px solid #f0f0f0; font-size:11px;";
-        div.innerHTML = `<input type="checkbox" class="log-check" value="${id}" checked style="width:18px"><div style="flex:1">${html}</div>`;
-        document.getElementById('list-log').prepend(div);
-        document.getElementById('btn-share').style.display = 'block';
+    async function bukaKamera(m) {
+        modeAbsen = m; document.getElementById('layar-kamera').style.display='flex';
+        stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
+        document.getElementById('video').srcObject = stream;
     }
-
-    function simpanIzin() {
-        let t = document.getElementById('ket-manual').value;
-        if(!t) return;
-        addLog(`<b>IZIN</b> | ${new Date().toLocaleTimeString()}<br>Ket: ${t}`, `IZIN: ${t}`);
-        document.getElementById('ket-manual').value = ""; tampilIzin();
-    }
-
-    async function startCam(mode) {
-        try {
-            if (stream) stream.getTracks().forEach(t => t.stop());
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
-            document.getElementById('video').srcObject = stream;
-        } catch(e) { alert("Izinkan kamera."); }
-    }
-
-    function bukaKamera(m) {
-        modeAbsen = m; document.getElementById('layar-kamera').style.display = 'flex';
-        startCam(currentFacingMode);
-    }
-
-    function switchCam() {
-        currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
-        startCam(currentFacingMode);
-    }
-
-    function tutupKamera() {
-        if (stream) stream.getTracks().forEach(t => t.stop());
-        document.getElementById('layar-kamera').style.display = 'none';
-    }
-
-    async function ambilFoto() {
-        let v = document.getElementById('video');
-        let can = document.createElement('canvas');
-        can.width = v.videoWidth; can.height = v.videoHeight;
-        can.getContext('2d').drawImage(v, 0, 0);
-        let img = can.toDataURL('image/jpeg', 0.5);
-        let jam = new Date().toLocaleTimeString();
+    function tutupKamera() { if(stream) stream.getTracks().forEach(t=>t.stop()); document.getElementById('layar-kamera').style.display='none'; }
+    
+    function ambilFoto() {
         tutupKamera();
-        
         navigator.geolocation.getCurrentPosition(async pos => {
             let lat = pos.coords.latitude, lon = pos.coords.longitude;
+            let lok = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
             try {
-                // INI KODE LOKASI YANG SAYA MASUKKAN KEMBALI
                 let res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-                let data = await res.json();
-                let locName = data.display_name;
-                addLog(`<b>${modeAbsen}</b> | ${jam}<br><img src="${img}" style="width:60px; border-radius:5px; margin:5px 0"><br>📍 ${locName}<br><small>${lat}, ${lon}</small>`, `${modeAbsen}: ${jam}\nLokasi: ${locName}\nKordinat: ${lat},${lon}`);
-            } catch(e) {
-                addLog(`<b>${modeAbsen}</b> | ${jam}<br><img src="${img}" style="width:60px; border-radius:5px;"><br>📍 ${lat}, ${lon}`, `${modeAbsen}: ${jam} (${lat},${lon})`);
-            }
-        });
+                let data = await res.json(); lok = data.display_name.split(',').slice(0,3).join(',');
+            } catch(e) {}
+            addLog(modeAbsen, lok);
+        }, () => addLog(modeAbsen, "Lokasi tidak aktif"));
     }
 
-    function shareTerpilih() {
-        let terpilih = Array.from(document.querySelectorAll('.log-check:checked')).map(c => c.value);
-        if(terpilih.length === 0) return alert("Pilih data!");
-        let h = `*ABSENSI BUMDES AMJ*\nNama: ${db.n}\n---\n`;
-        let b = riwayatArray.filter(r => terpilih.includes(r.id)).map(r => r.teks).join('\n\n');
-        window.open(`https://wa.me/?text=${encodeURIComponent(h + b)}`);
+    function prosesIzin() {
+        let t = prompt("Alasan Izin:");
+        if(t) addLog("IZIN", "Alasan: "+t);
     }
+
+    function addLog(tipe, ket) {
+        let id = Date.now();
+        let time = new Date();
+        riwayat.unshift({ id, tgl: time.toISOString().split('T')[0], jam: time.toLocaleTimeString(), tipe, ket });
+        localStorage.setItem('amj_riwayat', JSON.stringify(riwayat));
+        filterRekap(); alert("Tercatat!");
+    }
+
+    function filterRekap() {
+        let m = document.getElementById('tgl-mulai').value, a = document.getElementById('tgl-akhir').value;
+        let filtered = riwayat;
+        if(m && a) filtered = riwayat.filter(r => r.tgl >= m && r.tgl <= a);
+        
+        let html = filtered.slice(0,10).map(r => `
+            <div class="log-item">
+                <input type="checkbox" class="log-sel" value="${r.tipe} (${r.jam}) - ${r.ket}">
+                <div style="font-size:10px"><b>${r.tipe}</b><br>${r.jam} - ${r.ket}</div>
+            </div>
+        `).join('');
+        document.getElementById('list-log').innerHTML = html || "<p style='font-size:10px;text-align:center'>Belum ada data</p>";
+        document.getElementById('btn-bagikan').style.display = filtered.length ? 'block' : 'none';
+    }
+
+    function bagikanKeWA() {
+        let items = Array.from(document.querySelectorAll('.log-sel:checked')).map(el => el.value);
+        if(!items.length) return alert("Pilih data dulu!");
+        let teks = `*REKAP ABSENSI BUMDES AMJ*\nNama: ${db.n}\n\n` + items.join('\n\n');
+        window.open(`https://wa.me/?text=${encodeURIComponent(teks)}`);
+    }
+
+    window.onload = () => {
+        let l = localStorage.getItem('amj_logo'), p = localStorage.getItem('amj_foto_user');
+        if(l) updateImg('logo', l);
+        if(p) updateImg('prof', p);
+    };
 </script>
 </body>
 </html>
