@@ -42,7 +42,15 @@
         .foto-lingkaran img { width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; z-index: 10; }
         .foto-lingkaran span { font-size: 10px; font-weight: 800; color: #777; z-index: 1; }
         
-        .judul-besar { color: #008000; font-weight: 800; font-size: 18px; margin-bottom: 5px; }
+        /* FIX JUDUL SATU BARIS */
+        .judul-besar { 
+            color: #008000; 
+            font-weight: 800; 
+            font-size: clamp(14px, 4.5vw, 18px); 
+            margin-bottom: 5px; 
+            white-space: nowrap; 
+            overflow: hidden;
+        }
         .t-hitam { color: #1a1a1a; font-weight: 800; font-size: 17px; margin-bottom: 25px; }
 
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; font-size: 14px; }
@@ -56,7 +64,14 @@
         
         #layar-kamera, #crop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10001; display: none; flex-direction: column; align-items: center; justify-content: center; }
         #img-crop { max-width: 90%; max-height: 70%; }
-        .log-item { display: flex; gap: 8px; border-bottom: 1px solid #eee; padding: 8px 0; align-items: flex-start; }
+        
+        /* STYLE RIWAYAT DENGAN FOTO */
+        .log-item { display: flex; gap: 10px; border-bottom: 1px solid #eee; padding: 10px 0; align-items: center; }
+        .log-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 1px solid #ddd; }
+        .log-text { flex: 1; font-size: 10px; line-height: 1.3; }
+        
+        /* TOMBOL GANTI KAMERA */
+        #btn-switch { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.3); color: #fff; padding: 10px; border-radius: 50%; width: 45px; height: 45px; font-size: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; }
     </style>
 </head>
 <body>
@@ -103,8 +118,8 @@
         <div class="judul-besar" id="user-nama">...</div>
         <div class="t-hitam" id="user-jab">...</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-            <button class="btn btn-masuk" onclick="bukaKamera('MASUK')">MASUK</button>
-            <button class="btn btn-pulang" onclick="bukaKamera('PULANG')">PULANG</button>
+            <button class="btn btn-masuk" onclick="mulaiAbsen('MASUK')">MASUK</button>
+            <button class="btn btn-pulang" onclick="mulaiAbsen('PULANG')">PULANG</button>
         </div>
         <button class="btn" style="background:red; font-size:12px; padding:10px" onclick="prosesIzin()">IZIN / SAKIT</button>
         
@@ -116,7 +131,7 @@
             </div>
             <button class="btn" style="background:#444; padding:8px; font-size:11px" onclick="filterRekap()">TAMPILKAN</button>
             <div id="list-log"></div>
-            <button class="btn btn-wa" id="btn-bagikan" style="display:none" onclick="bagikanKeWA()">BAGIKAN</button>
+            <button class="btn btn-wa" id="btn-bagikan" style="display:none" onclick="bagikanKeWA()">KIRIM KE WA</button>
         </div>
         <p onclick="location.reload()" style="color:red; font-size:11px; font-weight:800; margin-top:15px; cursor:pointer">KELUAR</p>
     </div>
@@ -131,9 +146,11 @@
 </div>
 
 <div id="layar-kamera">
-    <video id="video" autoplay playsinline style="width:85%; border-radius:15px"></video>
+    <div id="btn-switch" onclick="switchKamera()">🔄</div>
+    <video id="video" autoplay playsinline style="width:85%; border-radius:15px; background: #222;"></video>
     <button class="btn btn-masuk" style="width:80%; margin-top:15px" onclick="ambilFoto()">AMBIL FOTO</button>
     <button class="btn" style="background:red; width:80%" onclick="tutupKamera()">BATAL</button>
+    <canvas id="canvas-snap" style="display:none"></canvas>
 </div>
 
 <input type="file" id="f-file" hidden accept="image/*">
@@ -142,6 +159,7 @@
     let db = JSON.parse(localStorage.getItem('amj_data_v3'));
     let riwayat = JSON.parse(localStorage.getItem('amj_riwayat')) || [];
     let cropper, currentTarget, stream, modeAbsen;
+    let currentFacingMode = "user"; // Default depan
 
     function updateClock() {
         const d = new Date();
@@ -182,7 +200,7 @@
 
     function updateImg(type, src) {
         if(type === 'logo') {
-            ['v-logo-l', 'v-logo-r'].forEach(id => { let el=document.getElementById(id); el.src=src; el.style.display='block'; });
+            ['v-logo-l', 'v-logo-r'].forEach(id => { let el=document.getElementById(id); if(el){ el.src=src; el.style.display='block'; } });
             ['s-logo-l', 's-logo-r'].forEach(id => { let el=document.getElementById(id); if(el) el.style.display='none'; });
         } else {
             let img=document.getElementById('v-prof'); img.src=src; img.style.display='block';
@@ -195,48 +213,78 @@
         if(!n || p !== document.getElementById('r-p2').value) return alert("Cek data!");
         db = { n: n.toUpperCase(), h: hp, j: j, p: p };
         localStorage.setItem('amj_data_v3', JSON.stringify(db));
-        if(j === "Ketua") localStorage.setItem('amj_admin_wa', hp);
         alert("Berhasil!"); pindah('hal-login');
     }
 
     function prosesLogin() {
         let u = document.getElementById('in-user').value.toUpperCase(), p = document.getElementById('in-pass').value;
         if(db && (u === db.n || u === db.h) && p === db.p) {
-            document.getElementById('user-nama').innerText = "HALO, " + db.n;
+            document.getElementById('user-nama').innerText = db.n;
             document.getElementById('user-jab').innerText = db.j;
             filterRekap(); pindah('hal-dash');
         } else alert("Gagal!");
     }
 
-    async function bukaKamera(m) {
-        modeAbsen = m; document.getElementById('layar-kamera').style.display='flex';
-        stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
-        document.getElementById('video').srcObject = stream;
+    // FUNGSI KAMERA BARU
+    async function mulaiAbsen(m) {
+        modeAbsen = m;
+        currentFacingMode = "user"; // Reset ke depan dulu
+        bukaKamera();
     }
+
+    async function switchKamera() {
+        currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
+        if(stream) stream.getTracks().forEach(t=>t.stop());
+        bukaKamera();
+    }
+
+    async function bukaKamera() {
+        document.getElementById('layar-kamera').style.display='flex';
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: currentFacingMode }
+            });
+            document.getElementById('video').srcObject = stream;
+        } catch(e) { alert("Gagal akses kamera!"); }
+    }
+
     function tutupKamera() { if(stream) stream.getTracks().forEach(t=>t.stop()); document.getElementById('layar-kamera').style.display='none'; }
     
     function ambilFoto() {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas-snap');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const fotoAbsen = canvas.toDataURL('image/jpeg', 0.5); // Perkecil ukuran foto
+
         tutupKamera();
         navigator.geolocation.getCurrentPosition(async pos => {
             let lat = pos.coords.latitude, lon = pos.coords.longitude;
             let lok = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
             try {
                 let res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-                let data = await res.json(); lok = data.display_name.split(',').slice(0,3).join(',');
+                let data = await res.json(); 
+                lok = data.address.village || data.address.suburb || data.address.city || lok;
             } catch(e) {}
-            addLog(modeAbsen, lok);
-        }, () => addLog(modeAbsen, "Lokasi tidak aktif"));
+            addLog(modeAbsen, lok, fotoAbsen);
+        }, () => addLog(modeAbsen, "Lokasi tidak aktif", fotoAbsen));
     }
 
     function prosesIzin() {
         let t = prompt("Alasan Izin:");
-        if(t) addLog("IZIN", "Alasan: "+t);
+        if(t) addLog("IZIN", "Alasan: "+t, null);
     }
 
-    function addLog(tipe, ket) {
-        let id = Date.now();
+    function addLog(tipe, ket, foto) {
         let time = new Date();
-        riwayat.unshift({ id, tgl: time.toISOString().split('T')[0], jam: time.toLocaleTimeString(), tipe, ket });
+        riwayat.unshift({ 
+            tgl: time.toISOString().split('T')[0], 
+            jam: time.toLocaleTimeString('id-ID'), 
+            tipe, 
+            ket, 
+            foto 
+        });
         localStorage.setItem('amj_riwayat', JSON.stringify(riwayat));
         filterRekap(); alert("Tercatat!");
     }
@@ -249,7 +297,11 @@
         let html = filtered.slice(0,10).map(r => `
             <div class="log-item">
                 <input type="checkbox" class="log-sel" value="${r.tipe} (${r.jam}) - ${r.ket}">
-                <div style="font-size:10px"><b>${r.tipe}</b><br>${r.jam} - ${r.ket}</div>
+                ${r.foto ? `<img src="${r.foto}" class="log-img">` : `<div class="log-img" style="background:#ddd; display:flex; align-items:center; justify-content:center; font-size:8px">No Foto</div>`}
+                <div class="log-text">
+                    <b>${r.tipe}</b> | ${r.jam}<br>
+                    <span>${r.ket}</span>
+                </div>
             </div>
         `).join('');
         document.getElementById('list-log').innerHTML = html || "<p style='font-size:10px;text-align:center'>Belum ada data</p>";
