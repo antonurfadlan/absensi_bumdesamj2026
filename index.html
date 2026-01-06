@@ -308,7 +308,7 @@
         document.getElementById('btn-bagikan').style.display = filtered.length ? 'block' : 'none';
     }
 
-    function bagikanKeWA() {
+    function Bagikan() {
         let items = Array.from(document.querySelectorAll('.log-sel:checked')).map(el => el.value);
         if(!items.length) return alert("Pilih data dulu!");
         let teks = `*REKAP ABSENSI BUMDES AMJ*\nNama: ${db.n}\n\n` + items.join('\n\n');
