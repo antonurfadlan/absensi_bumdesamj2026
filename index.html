@@ -42,7 +42,6 @@
         .foto-lingkaran img { width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; z-index: 10; }
         .foto-lingkaran span { font-size: 10px; font-weight: 800; color: #777; z-index: 1; }
         
-        /* FIX JUDUL SATU BARIS */
         .judul-besar { 
             color: #008000; 
             font-weight: 800; 
@@ -50,6 +49,7 @@
             margin-bottom: 5px; 
             white-space: nowrap; 
             overflow: hidden;
+            text-align: center;
         }
         .t-hitam { color: #1a1a1a; font-weight: 800; font-size: 17px; margin-bottom: 25px; }
 
@@ -65,12 +65,11 @@
         #layar-kamera, #crop-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10001; display: none; flex-direction: column; align-items: center; justify-content: center; }
         #img-crop { max-width: 90%; max-height: 70%; }
         
-        /* STYLE RIWAYAT DENGAN FOTO */
-        .log-item { display: flex; gap: 10px; border-bottom: 1px solid #eee; padding: 10px 0; align-items: center; }
+        .log-item { display: flex; gap: 10px; border-bottom: 1px solid #eee; padding: 10px 0; align-items: center; position: relative; }
         .log-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 1px solid #ddd; }
         .log-text { flex: 1; font-size: 10px; line-height: 1.3; }
+        .btn-hapus-log { color: #ff0000; font-weight: bold; font-size: 16px; padding: 5px 10px; cursor: pointer; }
         
-        /* TOMBOL GANTI KAMERA */
         #btn-switch { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.3); color: #fff; padding: 10px; border-radius: 50%; width: 45px; height: 45px; font-size: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; }
     </style>
 </head>
@@ -129,7 +128,10 @@
                 <input type="date" id="tgl-mulai" style="font-size:10px">
                 <input type="date" id="tgl-akhir" style="font-size:10px">
             </div>
-            <button class="btn" style="background:#444; padding:8px; font-size:11px" onclick="filterRekap()">TAMPILKAN</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px">
+                <button class="btn" style="background:#444; padding:8px; font-size:11px" onclick="filterRekap()">TAMPILKAN</button>
+                <button class="btn" style="background:#888; padding:8px; font-size:11px" onclick="clearAllLogs()">HAPUS SEMUA</button>
+            </div>
             <div id="list-log"></div>
             <button class="btn btn-wa" id="btn-bagikan" style="display:none" onclick="bagikanKeWA()">KIRIM KE WA</button>
         </div>
@@ -159,7 +161,7 @@
     let db = JSON.parse(localStorage.getItem('amj_data_v3'));
     let riwayat = JSON.parse(localStorage.getItem('amj_riwayat')) || [];
     let cropper, currentTarget, stream, modeAbsen;
-    let currentFacingMode = "user"; // Default depan
+    let currentFacingMode = "user";
 
     function updateClock() {
         const d = new Date();
@@ -225,10 +227,9 @@
         } else alert("Gagal!");
     }
 
-    // FUNGSI KAMERA BARU
     async function mulaiAbsen(m) {
         modeAbsen = m;
-        currentFacingMode = "user"; // Reset ke depan dulu
+        currentFacingMode = "user";
         bukaKamera();
     }
 
@@ -256,7 +257,7 @@
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
-        const fotoAbsen = canvas.toDataURL('image/jpeg', 0.5); // Perkecil ukuran foto
+        const fotoAbsen = canvas.toDataURL('image/jpeg', 0.5);
 
         tutupKamera();
         navigator.geolocation.getCurrentPosition(async pos => {
@@ -279,6 +280,7 @@
     function addLog(tipe, ket, foto) {
         let time = new Date();
         riwayat.unshift({ 
+            id: Date.now(), // ID Unik untuk hapus
             tgl: time.toISOString().split('T')[0], 
             jam: time.toLocaleTimeString('id-ID'), 
             tipe, 
@@ -289,12 +291,28 @@
         filterRekap(); alert("Tercatat!");
     }
 
+    function deleteLog(id) {
+        if(confirm("Hapus baris ini?")) {
+            riwayat = riwayat.filter(r => r.id !== id);
+            localStorage.setItem('amj_riwayat', JSON.stringify(riwayat));
+            filterRekap();
+        }
+    }
+
+    function clearAllLogs() {
+        if(confirm("Hapus SEMUA riwayat secara permanen?")) {
+            riwayat = [];
+            localStorage.setItem('amj_riwayat', JSON.stringify(riwayat));
+            filterRekap();
+        }
+    }
+
     function filterRekap() {
         let m = document.getElementById('tgl-mulai').value, a = document.getElementById('tgl-akhir').value;
         let filtered = riwayat;
         if(m && a) filtered = riwayat.filter(r => r.tgl >= m && r.tgl <= a);
         
-        let html = filtered.slice(0,10).map(r => `
+        let html = filtered.map(r => `
             <div class="log-item">
                 <input type="checkbox" class="log-sel" value="${r.tipe} (${r.jam}) - ${r.ket}">
                 ${r.foto ? `<img src="${r.foto}" class="log-img">` : `<div class="log-img" style="background:#ddd; display:flex; align-items:center; justify-content:center; font-size:8px">No Foto</div>`}
@@ -302,13 +320,14 @@
                     <b>${r.tipe}</b> | ${r.jam}<br>
                     <span>${r.ket}</span>
                 </div>
+                <div class="btn-hapus-log" onclick="deleteLog(${r.id})">×</div>
             </div>
         `).join('');
         document.getElementById('list-log').innerHTML = html || "<p style='font-size:10px;text-align:center'>Belum ada data</p>";
         document.getElementById('btn-bagikan').style.display = filtered.length ? 'block' : 'none';
     }
 
-    function Bagikan() {
+    function bagikanKeWA() {
         let items = Array.from(document.querySelectorAll('.log-sel:checked')).map(el => el.value);
         if(!items.length) return alert("Pilih data dulu!");
         let teks = `*REKAP ABSENSI BUMDES AMJ*\nNama: ${db.n}\n\n` + items.join('\n\n');
